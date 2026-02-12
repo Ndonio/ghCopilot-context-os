@@ -1,18 +1,34 @@
-# Claude Context OS
+# Claude Context OS v4
 
-> A CLAUDE.md that keeps Claude from forgetting everything when conversations get long.
+> Your CLAUDE.md shouldn't explain itself. It should just work.
 
 ---
 
-## The problem
+## What changed in v4
 
-If you've used Claude for more than an afternoon, you know the drill. You're twenty messages into a session, Claude auto-compacts, and suddenly it's forgotten your file paths, your decisions, the numbers you spent an hour working out. You start over. Again.
+v3 got 150+ stars. Then I read 9 peer-reviewed papers on how LLMs actually process system prompts. Turns out v3 was working against itself.
 
-People on Reddit have figured out pieces of this — "use a plan file," "summarize manually," "start new chats." These help. But they're individual fixes for a systemic problem.
+**The research said three things that broke my assumptions:**
 
-I needed something that worked across multi-week projects without me babysitting context. So I built this.
+1. **LLMs track 5-10 rules before performance degrades.** v3 had 15+. Some rules were silently dropped every session. ([arXiv:2409.10715](https://arxiv.org/abs/2409.10715))
 
-## The core insight
+2. **Explanatory prose actively interferes with instruction compliance.** The "Why It Matters" sections in v3 weren't neutral — they competed with the actual rules for Claude's attention. Topically related filler is worse than random noise. ([Chroma Context Rot, 2025](https://research.trychroma.com/context-rot))
+
+3. **Claude 4.6 overtriggers on emphatic language.** "CRITICAL", "NEVER", "YOU MUST" worked for Claude 3.x. The newer models are more responsive to system prompts and now overcorrect when they see aggressive language. ([Anthropic Claude 4 Best Practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices))
+
+**The result:** v4 is 47 lines and 7 rules. Down from 327 lines and 15+ rules. Every design choice maps to a specific research finding.
+
+| | v3 | v4 |
+|---|---|---|
+| Lines | 327 | 47 |
+| Rules | 15+ | 7 |
+| Explanatory prose | Heavy | Zero |
+| Language style | "CRITICAL / NEVER / MUST" | Plain imperatives |
+| Session startup | Read all summaries | Read only what handoff references |
+| Reference content | Embedded in CLAUDE.md | Moved to docs/context/ (loaded on demand) |
+| Templates | Same | Same + task template + handoff index |
+
+## The problem (unchanged from v3)
 
 Claude's default summarization loses five specific things:
 
@@ -22,145 +38,145 @@ Claude's default summarization loses five specific things:
 4. **Cross-document relationships** flatten to single statements
 5. **Open questions** get silently resolved as settled
 
-If you ask Claude to "summarize what we've done," you get prose. And prose triggers the exact same compression that caused the problem. So the fix isn't better summarization — it's structured templates with explicit fields that mechanically prevent these five failure modes.
-
-**Don't fight compaction. Design around it.**
-
-## What it actually does
-
-| Problem | What this does about it |
-|---|---|
-| Auto-compaction destroys context | You compact manually at 60-70%, and always write state to disk first |
-| Claude forgets mid-conversation | State lives in files, not in conversation memory — survives any compaction |
-| Numbers and rationale vanish | Templates have explicit fields for exact metrics, IF/THEN constraints, decision rationale + rejected alternatives |
-| "Maximum length" after a few messages | One concern per session + handoffs between sessions |
-| Context feels smaller than advertised | Explicit budget math: 200K total minus CLAUDE.md minus summaries = what you actually have left |
-| Claude re-reads files it already processed | "What NOT to Re-Read" field in every handoff |
+The fix isn't better summarization — it's structured templates with explicit fields that mechanically prevent these five failure modes.
 
 ## What's in the box
 
 ```
-CLAUDE.md                    (~3.5K tokens) — the operating system
+CLAUDE.md                    (47 lines, ~1,200 tokens) — the operating system
 templates/
-  claude-templates.md        (on-demand only) — light + full templates,
-                              3 subagent contracts, 4 workflow phases
+  claude-templates.md        (on-demand only) — 6 templates, 3 subagent contracts,
+                              3 workflow phases, task definition format
+docs/
+  context/                   (on-demand) — reference files loaded by work type
+    processing-protocol.md   — how to handle multiple documents
+    archive-rules.md         — summary lifecycle and file management
+    project-structure.md     — full directory tree + scaffold commands
+    subagent-rules.md        — when to use subagents vs. main agent
+    client-briefs/           — per-client context (you populate these)
 .claude/commands/
   handoff.md                 /handoff — end a session cleanly
   process-doc.md             /process-doc — summarize an input document
   status.md                  /status — check project state
 examples/
   software-dev-project/      worked example with filled-in templates
+CLAUDE-v3.md                 previous version (preserved for reference)
 ```
 
-The core file is ~3.5K tokens. The templates are explicitly marked "do NOT read at session start" — they only get loaded when you need one. So they don't eat your window.
+## The 7 rules
 
-## The six rules
+1. **Do not mix client contexts** in one session
+2. **Write state to disk, not conversation** — summaries to docs/summaries/ using structured templates
+3. **Before compaction or session end**, write everything to disk — numbers, decisions, questions, file paths, next actions
+4. **When switching work types**, write a handoff and suggest a new session
+5. **Do not silently resolve open questions** — mark them OPEN or ASSUMED
+6. **Do not bulk-read documents** — process one at a time, summarize, release before reading next
+7. **Sub-agent returns must be structured** — use output contracts, not free-form prose
 
-1. **Never bulk-read documents** — process one at a time, summarize it, move on
-2. **Write state to disk, not conversation** — if it's important, it goes in a file
-3. **Compact manually at 60-70%** — not when the system forces it. And always write state first.
-4. **One concern per session** — research OR writing OR review, not all three
-5. **CLAUDE.md is an index, not an encyclopedia** — project context goes in summary files, not here
-6. **Monitor context continuously** — check every 3-4 exchanges, split proactively
+## Why 7 rules and not 15
 
-## Templates
+Research on transformer working memory ([arXiv:2409.10715](https://arxiv.org/abs/2409.10715)) shows LLMs can actively track **5-10 constraints** before performance degrades to near-random. With 15 rules, Claude silently drops the ones it considers least relevant. With 7, compliance per rule goes up significantly.
 
-Two tiers — use **light** for quick projects (under 5 sessions), **full** for longer engagements:
+The rules that were cut didn't disappear — they moved to `docs/context/` where Claude loads them only when the task requires it. This matches Anthropic's own recommendation for ["just-in-time context"](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents).
 
-| Template | Light (3 fields) | Full (8 fields) |
-|---|---|---|
-| **Source Document Summary** | Key facts, numbers, open items | + requirements as IF/THEN/BUT/EXCEPT, decisions with rationale, cross-doc relationships, verbatim quotes |
-| **Session Handoff** | Done, next steps, don't re-read | + exact numbers, conditional logic, assumptions, open questions |
-| **Decision Record** | Chose X because Y, rejected Z | + quantified impact, conditions, stakeholder input, downstream effects |
-| **Analysis/Research Summary** | Full version only | Evidence tables, confidence levels, conditional conclusions, scope boundaries |
-| **Project Brief** | Full version only | Project setup, success criteria, input tracking, phase status |
+## Why zero explanation in CLAUDE.md
 
-## Session handoffs
+v3 had sections like "Structured Summarization: Why It Matters" and "Cost of NOT Splitting" — prose that explained *why* each rule existed.
 
-When a session ends:
-1. Write a structured handoff to `docs/summaries/`
-2. Next session reads that file and picks up where you left off
-3. Old handoffs get archived automatically
+The [Chroma Context Rot study](https://research.trychroma.com/context-rot) (July 2025, 18 LLMs tested) found that **coherent filler text that's topically related to the target task interferes MORE than random noise**. Explanatory prose about context management rules actively competes with the context management rules themselves.
 
-Here's why this matters: by message 30 in a long conversation, each exchange carries ~50K tokens of history. A fresh session with a handoff summary starts at ~5K. That's 10x less context per message.
+v4 has rules only. No justification, no persuasion, no theory. The rationale lives here in the README — for humans, not for Claude.
 
-## Subagent contracts
+## Why plain language instead of "CRITICAL" and "NEVER"
 
-When subagents return results as free-form prose, you get the same compression problem. So there are structured output contracts for document analysis, research, and review subagents. They return data in explicit fields, not paragraphs.
+Anthropic's [Claude 4 best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices) note that Claude Opus 4.5/4.6 is "significantly more proactive" and "more responsive to the system prompt." Instructions that needed emphasis for Claude 3.x now cause overtriggering in Claude 4.6.
 
-## Error recovery
+v4 uses calm imperatives: "Do not mix client contexts" instead of "NEVER mix client contexts. This is CRITICAL."
 
-Things go wrong. The CLAUDE.md has procedures for:
-- **Context corruption** — save what you have, start fresh
-- **Surprise auto-compaction** — re-read summaries, report what's missing
-- **Task too big for context** — warn upfront, suggest phases
+## Why "Before Delivering Output" is last
+
+The [Lost in the Middle](https://aclanthology.org/2024.tacl-1.9/) paper (Liu et al., TACL 2024) showed LLM performance follows a **U-shaped curve** — highest attention at the beginning and end of context, lowest in the middle. Anthropic's own testing shows queries placed at the end of prompts [improve response quality by up to 30%](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/long-context-tips).
+
+The verification checklist is deliberately placed at the end of CLAUDE.md so it's the last instruction Claude processes before starting work.
+
+## New in v4
+
+### Work-type context mapping
+
+CLAUDE.md now tells Claude which context files to load based on the type of work:
+
+```
+- Proposals/sales → client-briefs/[client].md + sales-frameworks.md
+- Content/thought leadership → content-strategy.md
+- Workshops → workshop-design.md + client-briefs/[client].md
+- Agent development → use codebase directly
+```
+
+No more loading everything. Claude loads what the task needs.
+
+### Task definition template
+
+Inspired by [GSD](https://github.com/gsd-build/get-shit-done)'s atomic task structure:
+
+```
+## Task: [name]
+Context files: [which files to load]
+Action: [what to produce]
+Verify: [how to check it's correct]
+Done: [what files exist when complete]
+```
+
+### Handoff index layer
+
+Inspired by [claude-mem](https://github.com/thedotmack/claude-mem)'s progressive disclosure pattern. Every handoff now includes a "Files to Load Next Session" field — an explicit manifest that tells the next session exactly what to read, instead of loading all summaries.
 
 ## Quick start
 
 1. Copy `CLAUDE.md` to your project root
-2. Copy the `templates/` directory
-3. Copy the `.claude/commands/` directory (for `/handoff`, `/process-doc`, `/status` commands)
-4. Edit the Identity section at the top of `CLAUDE.md` for your workflow
-5. Start a Claude Code session
+2. Copy the `templates/` and `docs/context/` directories
+3. Copy `.claude/commands/` for slash commands
+4. Edit the Identity section in CLAUDE.md for your workflow
+5. Populate `docs/context/` files for your domain (sales frameworks, client briefs, etc.)
+6. Start a Claude Code session
 
-That's it. No dependencies, no install.
-
-Check `examples/software-dev-project/` to see what filled-in templates look like in practice.
+No dependencies. No install.
 
 ## Who this is for
 
-People doing real work across multiple sessions — consultants, developers, researchers. Anyone whose projects span days or weeks, not minutes.
+Anyone doing multi-session work with Claude — consultants, developers, researchers, sales professionals, no-code builders. If your projects span days or weeks, not minutes.
 
-If you're just asking Claude a question, you don't need any of this.
+v4 was specifically designed to work for **non-developers** too — consultants, sales professionals, researchers, and no-code builders using Claude Code for business tasks like proposals, competitive analysis, content strategy, and workshop design.
 
-## Architecture
+## The research behind v4
 
-```
-project-root/
-├── CLAUDE.md                          ← the OS (~3.5K tokens)
-├── templates/
-│   └── claude-templates.md            ← loaded on-demand only
-├── .claude/
-│   └── commands/                      ← slash commands (/handoff, /process-doc, /status)
-├── docs/
-│   ├── discovery/                     ← raw inputs
-│   ├── research/                      ← research sources
-│   ├── archive/                       ← processed files (don't re-read)
-│   │   └── handoffs/                  ← old handoffs
-│   └── summaries/                     ← this is your persistent brain
-│       ├── 00-project-brief.md
-│       ├── source-[filename].md       ← per-document summaries
-│       ├── analysis-[topic].md        ← research outputs
-│       ├── decision-[num]-[topic].md  ← decision records (permanent)
-│       └── handoff-[date]-[topic].md  ← latest handoff only
-└── output/
-    ├── schemas/
-    ├── prompts/
-    └── deliverables/
-```
+| Design Decision | Research |
+|---|---|
+| 7 rules max | [Working Memory Limits](https://arxiv.org/abs/2409.10715) — LLMs track 5-10 constraints |
+| No explanatory prose | [Context Rot](https://research.trychroma.com/context-rot) — coherent filler interferes |
+| Rules are 1-3 lines each | [Hidden in the Haystack](https://arxiv.org/abs/2505.18148) — too-short instructions harder to find |
+| Verification at end | [Lost in the Middle](https://aclanthology.org/2024.tacl-1.9/) — U-shaped attention curve |
+| Plain imperatives | [Claude 4 Best Practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices) — overtriggering |
+| "State your understanding" step | [Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) + [EMNLP 2025](https://arxiv.org/abs/2510.05381) — recite-before-reasoning |
+| Just-in-time context loading | [Anthropic Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) |
+| Session splitting as architecture | [NoLiMa](https://arxiv.org/html/2502.05167v1) — 32K token performance cliff |
 
-The `docs/summaries/` directory is the whole point. Everything else is either raw input (archived after processing) or final output. The summaries are the project state.
+Additional references:
+- [Context Length Alone Hurts LLM Performance](https://arxiv.org/abs/2510.05381) — EMNLP 2025
+- [Claude Code Best Practices](https://code.claude.com/docs/en/best-practices) — Anthropic official
 
-## FAQ
+## v3 → v4 migration
 
-**Doesn't the CLAUDE.md itself eat context?**
-~3.5K tokens. You spend 3.5K on structure but save 50-100K by not re-reading source documents every session. You come out way ahead.
+If you're using v3:
+1. Your `templates/claude-templates.md` is mostly compatible — v4 adds Template 6 (Task Definition) and a "Files to Load Next Session" field to the handoff template
+2. Copy the new `docs/context/` directory — this is where v3's displaced content now lives
+3. Replace your `CLAUDE.md` with v4
+4. Your existing `docs/summaries/` files work unchanged
 
-**Does this work on claude.ai web or just Claude Code?**
-Designed for Claude Code and desktop, which have filesystem access. The ideas — structured summaries, session splitting, manual compaction timing — work anywhere, but the file-based state management needs a filesystem.
-
-**Can I use this with my existing CLAUDE.md?**
-Yes. This manages sessions and context. Your project-level CLAUDE.md handles project-specific rules. They coexist fine.
-
-**This seems like overkill.**
-For a single conversation, it is. For 2-5 session projects, use the lightweight templates — three fields each, minimal overhead. For multi-week projects where a lost session costs you two hours of re-work, the full templates pay for themselves immediately.
-
-**Why not just tell Claude to "summarize better"?**
-Because that triggers the exact same compression that caused the problem. Structured fields — CONFIRMED vs. OPEN vs. ASSUMED, exact numbers with sources, IF/THEN/BUT/EXCEPT — mechanically prevent it. It's an engineering fix, not a prompt.
+v3 is preserved as `CLAUDE-v3.md` in this repo.
 
 ## Contributing
 
-PRs and issues welcome. If you adapt this for a specific workflow — academic research, software dev, creative writing — I'd like to see your fork.
+PRs and issues welcome. If you've adapted this for a specific workflow — academic research, legal, creative writing, sales — I'd like to see your fork.
 
 ## License
 
@@ -168,4 +184,4 @@ MIT
 
 ---
 
-**Created by [Poorna Reddy](https://github.com/Arkya-AI)**. Built out of necessity, not theory — after too many sessions lost to compaction.
+**Created by [Poorna Reddy](https://github.com/Arkya-AI)**. v3 was built from necessity. v4 was built from research.
