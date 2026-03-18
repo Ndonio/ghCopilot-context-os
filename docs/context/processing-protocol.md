@@ -4,7 +4,7 @@ Use this whenever you need to process multiple documents or large files.
 
 ## For 1-3 Short Documents (< 2K words each)
 
-Read sequentially. After each document, write a Source Document Summary (Template 1 from `templates/claude-templates.md`) to disk. Then proceed with work using summaries only.
+Read sequentially. After each document, write a Source Document Summary (Template 1 from `templates/templates.md`) to disk. Then proceed with work using summaries only.
 
 ## For 4+ Documents OR Any Document > 2K Words
 

@@ -4,9 +4,14 @@
 
 ```
 project-root/
-├── CLAUDE.md                          ← Core instructions (read every session)
+├── .github/
+│   ├── copilot-instructions.md        ← Core instructions (read automatically by Copilot)
+│   └── prompts/                       ← Reusable prompt files
+│       ├── handoff.prompt.md          ← End session, write state to disk
+│       ├── status.prompt.md           ← Check project state
+│       └── process-doc.prompt.md      ← Process a document into structured summary
 ├── templates/
-│   └── claude-templates.md            ← Summary, handoff, decision, task, output contract templates
+│   └── templates.md                   ← Summary, handoff, decision, task, output contract templates
 ├── docs/
 │   ├── discovery/                     ← Raw client inputs, briefs, requirements
 │   ├── research/                      ← Market research, competitive analysis sources
@@ -33,9 +38,6 @@ project-root/
 │   ├── prompts/                       ← System prompts for agents
 │   ├── deliverables/                  ← Client-facing final outputs
 │   └── presentations/                 ← Decks, workshop materials
-└── .claude/
-    ├── agents/                        ← Custom subagent definitions
-    └── commands/                      ← Custom slash commands
 ```
 
 ## New Project Scaffold
@@ -43,5 +45,5 @@ project-root/
 ```bash
 mkdir -p docs/discovery docs/research docs/requirements docs/strategy docs/summaries docs/archive docs/archive/handoffs docs/context/client-briefs
 mkdir -p output/schemas output/prompts output/deliverables output/presentations
-mkdir -p templates .claude/agents .claude/commands
+mkdir -p templates .github/prompts
 ```

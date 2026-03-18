@@ -1,6 +1,6 @@
-# Claude Templates — On-Demand Reference
+# Templates — On-Demand Reference
 
-> **Do NOT read this file at session start.** Read it only when you need to write a summary, handoff, decision record, or subagent output. This file is referenced from CLAUDE.md.
+> **Do NOT read this file at session start.** Read it only when you need to write a summary, handoff, decision record, or subagent output. This file is referenced from copilot-instructions.md.
 
 ---
 
