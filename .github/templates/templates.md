@@ -8,13 +8,13 @@
 
 **Use when:** Processing any input document (client brief, research report, requirements doc, existing proposal)
 
-**Write to:** `./docs/summaries/source-[filename].md`
+**Write to:** `./.github/summaries/source-[filename].md`
 
 ```markdown
 # Source Summary: [Original Document Name]
 **Processed:** [YYYY-MM-DD]
 **Source Path:** [exact file path]
-**Archived From:** [original path, if moved to docs/archive/]
+**Archived From:** [original path, if moved to .github/archive/]
 **Document Type:** [brief / requirements / research / proposal / transcript / other]
 **Confidence:** [high = I understood everything / medium = some interpretation needed / low = significant gaps]
 
@@ -68,7 +68,7 @@
 
 **Use when:** Completing competitive analysis, market research, technical evaluation
 
-**Write to:** `./docs/summaries/analysis-[topic].md`
+**Write to:** `./.github/summaries/analysis-[topic].md`
 
 ```markdown
 # Analysis Summary: [Topic]
@@ -117,7 +117,7 @@
 
 **Use when:** Any significant decision is made during a session
 
-**Write to:** `./docs/summaries/decision-[number]-[topic].md`
+**Write to:** `./.github/summaries/decision-[number]-[topic].md`
 
 ```markdown
 # Decision Record: [Short Title]
@@ -159,9 +159,9 @@
 
 **Use when:** A session is ending (context limit approaching OR phase complete)
 
-**Write to:** `./docs/summaries/handoff-[YYYY-MM-DD]-[topic].md`
+**Write to:** `./.github/summaries/handoff-[YYYY-MM-DD]-[topic].md`
 
-**LIFECYCLE**: After writing a new handoff, move the PREVIOUS handoff to `docs/archive/handoffs/`.
+**LIFECYCLE**: After writing a new handoff, move the PREVIOUS handoff to `.github/archive/handoffs/`.
 
 ```markdown
 # Session Handoff: [Topic]
@@ -182,7 +182,7 @@
 
 ## Decisions Made This Session
 <!-- Reference decision records if created, otherwise summarize here -->
-- DR-[number]: [decision] (see `./docs/summaries/decision-[file]`)
+- DR-[number]: [decision] (see `./.github/summaries/decision-[file]`)
 - [Ad-hoc decision]: [what] BECAUSE [why] — STATUS: [confirmed/provisional]
 
 ## Key Numbers Generated or Discovered This Session
@@ -230,7 +230,7 @@
 
 **Use when:** Creating the 00-project-brief.md at project start
 
-**Write to:** `./docs/summaries/00-project-brief.md`
+**Write to:** `./.github/summaries/00-project-brief.md`
 
 ```markdown
 # Project Brief: [Project Name]
@@ -296,11 +296,11 @@
 - [ ] Open questions marked OPEN
 - [ ] Output matches what was requested, not what was assumed
 - [ ] Claims backed by specific data
-- [ ] Consistent with stored decisions in docs/context/
+- [ ] Consistent with stored decisions in .github/context/
 
 ### Done When
 - [ ] Output file exists at `[specific path]`
-- [ ] Summary written to `docs/summaries/[specific file]`
+- [ ] Summary written to `.github/summaries/[specific file]`
 ```
 
 ---
@@ -412,7 +412,7 @@ Phase 1: Discovery & Input Processing
 ├── Process all client documents → Source Document Summaries
 ├── Identify gaps in information → flag as OPEN items
 ├── Create Decision Records for any choices made
-├── Write: ./docs/summaries/01-discovery-complete.md (Handoff Template)
+├── Write: ./.github/summaries/01-discovery-complete.md (Handoff Template)
 ├── → Suggest new session for Phase 2
 
 Phase 2: Strategy & Positioning
@@ -420,14 +420,14 @@ Phase 2: Strategy & Positioning
 ├── Competitive positioning analysis → Analysis Summary
 ├── Value proposition development
 ├── ROI framework construction with EXACT numbers
-├── Write: ./docs/summaries/02-strategy-complete.md (Handoff Template)
+├── Write: ./.github/summaries/02-strategy-complete.md (Handoff Template)
 ├── → Suggest new session for Phase 3
 
 Phase 3: Deliverable Creation
 ├── Read strategy summary + project brief only
 ├── Draft deliverable (proposal / deck / workshop plan)
 ├── Output to: ./output/deliverables/
-├── Write: ./docs/summaries/03-deliverable-draft.md (Handoff Template)
+├── Write: ./.github/summaries/03-deliverable-draft.md (Handoff Template)
 ├── → Suggest new session for Phase 4
 
 Phase 4: Review & Polish
@@ -444,7 +444,7 @@ Phase 1: Requirements → Spec
 ├── Process all input documents → Source Document Summaries
 ├── Generate structured specification
 ├── Output: ./output/SPEC.md
-├── Write: ./docs/summaries/01-spec-complete.md (Handoff Template)
+├── Write: ./.github/summaries/01-spec-complete.md (Handoff Template)
 ├── → Suggest new session for Phase 2
 
 Phase 2: Architecture → Schema
@@ -453,7 +453,7 @@ Phase 2: Architecture → Schema
 ├── Define agent behaviors and workflows
 ├── Output: ./output/schemas/data-model.yaml
 ├── Output: ./output/schemas/agent-definitions.yaml
-├── Write: ./docs/summaries/02-architecture-complete.md (Handoff Template)
+├── Write: ./.github/summaries/02-architecture-complete.md (Handoff Template)
 ├── → Suggest new session for Phase 3
 
 Phase 3: Prompts → Integration
@@ -462,7 +462,7 @@ Phase 3: Prompts → Integration
 ├── Map API integrations and data flows
 ├── Output: ./output/prompts/[agent-name].md (one per agent)
 ├── Output: ./output/schemas/integration-map.yaml
-├── Write: ./docs/summaries/03-prompts-complete.md (Handoff Template)
+├── Write: ./.github/summaries/03-prompts-complete.md (Handoff Template)
 ├── → Suggest new session for Phase 4
 
 Phase 4: Assembly → Package

@@ -1,6 +1,6 @@
 # Runtime state — these are generated during use, not part of the template
-docs/summaries/
-docs/archive/
+.github/summaries/
+.github/archive/
 output/
 
 

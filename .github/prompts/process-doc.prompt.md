@@ -2,11 +2,11 @@
 description: "Process an input document into a structured summary"
 ---
 
-Process the provided document following the protocol in `docs/context/processing-protocol.md`.
+Process the provided document following the protocol in `.github/context/processing-protocol.md`.
 
-Use Template 1 (Source Document Summary) from `templates/templates.md` to create a structured summary.
+Use Template 1 (Source Document Summary) from `.github/templates/templates.md` to create a structured summary.
 
-Write the summary to `docs/summaries/source-{filename}.md`.
+Write the summary to `.github/summaries/source-{filename}.md`.
 
 Extract and preserve:
 - Every exact number, date, percentage, amount

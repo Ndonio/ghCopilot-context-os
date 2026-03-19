@@ -1,8 +1,8 @@
 ---
-description: "Write a session handoff to docs/summaries/ before ending the conversation"
+description: "Write a session handoff to .github/summaries/ before ending the conversation"
 ---
 
-The current session is ending. Write a handoff file to `docs/summaries/handoff-{date}-{topic}.md` using Template 4 (Session Handoff) from `templates/templates.md`.
+The current session is ending. Write a handoff file to `.github/summaries/handoff-{date}-{topic}.md` using Template 4 (Session Handoff) from `.github/templates/templates.md`.
 
 Include:
 - What was accomplished (with file paths)
@@ -13,4 +13,4 @@ Include:
 - Open questions requiring user input
 - Which files the next session should load
 
-If a previous handoff exists in docs/summaries/, move it to docs/archive/handoffs/.
+If a previous handoff exists in .github/summaries/, move it to .github/archive/handoffs/.
